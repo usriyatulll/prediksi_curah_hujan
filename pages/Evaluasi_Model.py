@@ -91,7 +91,6 @@ Model stabil, tahan outlier, dan seimbang antara akurasi & efisiensi.
     # ── Penjelasan umum cara membaca CM
     with st.expander("ℹ️ Cara Membaca Confusion Matrix"):
         st.markdown("""
-# **ℹ️ Cara Membaca Confusion Matrix**
 - **Baris** = label **aktual** (ground truth)  
 - **Kolom** = label **prediksi** model  
 - Nilai besar di **diagonal** ⇒ prediksi benar  
