@@ -81,20 +81,20 @@ def data_page():
     with tab1:
         col1, col2 = st.columns(2)
 
-        with col1:
+        # with col1:
             st.subheader("📊 Informasi Dataset")
             st.write(f"**Jumlah Baris**: {len(df_clean):,}")
             st.write(f"**Jumlah Kolom**: {len(df_clean.columns)}")
             st.write(f"**Periode Data**: {df_clean['TANGGAL'].min().date()} - {df_clean['TANGGAL'].max().date()}")
 
-            # Missing values
-            st.subheader("❌ Missing Values")
-            missing_data = df_clean.isnull().sum()
-            for col, missing in missing_data.items():
-                if missing > 0:
-                    st.write(f"**{col}**: {missing} ({missing/len(df_clean)*100:.1f}%)")
+            # # Missing values
+            # st.subheader("❌ Missing Values")
+            # missing_data = df_clean.isnull().sum()
+            # for col, missing in missing_data.items():
+            #     if missing > 0:
+            #         st.write(f"**{col}**: {missing} ({missing/len(df_clean)*100:.1f}%)")
 
-        with col2:
+        # with col2:
             st.subheader("📋 Sample Data")
             st.dataframe(df_clean.head(10), use_container_width=True)
 
@@ -102,7 +102,7 @@ def data_page():
         st.subheader("🗓️ Trend Temporal")
         df_clean = df_clean.sort_values('TANGGAL')
 
-        param_ts = st.selectbox("Pilih Parameter untuk Time Series:", numeric_columns, key="ts_param")
+        param_ts = st.selectbox("Pilih Parameter:", numeric_columns, key="ts_param")
         
         fig_ts = px.line(df_clean, x='TANGGAL', y=param_ts,
                          title=f"Trend {param_ts} dari Waktu ke Waktu")
