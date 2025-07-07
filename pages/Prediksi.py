@@ -100,18 +100,21 @@ if 'hasil_prediksi' in st.session_state:
    st.subheader("🗺️ Lokasi Prediksi Cuaca")
    st.subheader("🗺️ Lokasi Prediksi Cuaca")
 
-# Tampilkan peta dan caption dalam satu container agar lebih rapat
-with st.container():
-    m = folium.Map(location=[-7.719, 109.015], zoom_start=10)
-    folium.Marker(
-        [-7.719, 109.015],
-        popup="Kabupaten Cilacap",
-        tooltip="Prediksi Cuaca",
-        icon=folium.Icon(color="blue", icon="cloud")
-    ).add_to(m)
+# Subheader dan peta hanya muncul jika prediksi tersedia
+    st.subheader("🗺️ Lokasi Prediksi Cuaca")
 
-    # Peta
-    st_folium(m, width=700, height=400)
+    with st.container():
+        m = folium.Map(location=[-7.719, 109.015], zoom_start=10)
+        folium.Marker(
+            [-7.719, 109.015],
+            popup="Kabupaten Cilacap",
+            tooltip="Prediksi Cuaca",
+            icon=folium.Icon(color="blue", icon="cloud")
+        ).add_to(m)
 
-    # Caption langsung setelah peta
-    st.markdown('<p style="margin-top: -10px; font-size: 0.9em;">📍 Kabupaten Cilacap, Jawa Tengah</p>', unsafe_allow_html=True)
+        st_folium(m, width=700, height=400)
+
+        st.markdown(
+            '<p style="margin-top: -10px; font-size: 0.9em;">📍 Kabupaten Cilacap, Jawa Tengah</p>',
+            unsafe_allow_html=True
+        )
