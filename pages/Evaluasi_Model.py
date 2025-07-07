@@ -71,26 +71,27 @@ def page():
 # ── Keterangan khusus per-model
     if choice == "Naive Bayes":
         st.markdown("""
-**🧠 Naive Bayes**  
+**Naive Bayes**  
 Model ini memiliki banyak nilai di luar diagonal → sering salah membedakan kelas yang mirip (*Hujan Ringan* vs *Hujan Sedang*).  
 Cocok sebagai baseline, tetapi kurang akurat untuk pola curah hujan kompleks.
         """)
     elif choice == "K-Nearest Neighbors":
         st.markdown("""
-**📍 K-Nearest Neighbors (KNN)**  
+**K-Nearest Neighbors (KNN)**  
 Hampir semua prediksi tepat di diagonal → akurasi sangat tinggi.  
 KNN berhasil menangkap pola lokal; sangat baik membedakan *No Rain* dan *Hujan Sangat Lebat*.
         """)
     elif choice == "Random Forest":
         st.markdown("""
-**🌳 Random Forest**  
+**Random Forest**  
 Prediksi mayoritas benar; hanya sedikit kesalahan pada *Hujan Ringan* → *Hujan Sedang*.  
 Model stabil, tahan outlier, dan seimbang antara akurasi & efisiensi.
         """)
 
     # ── Penjelasan umum cara membaca CM
-    with st.expander("ℹ️ Cara Membaca Confusion Matrix"):
+    # with st.expander("ℹ️ Cara Membaca Confusion Matrix"):
         st.markdown("""
+**ℹ️ Cara Membaca Confusion Matrix**
 - **Baris** = label **aktual** (ground truth)  
 - **Kolom** = label **prediksi** model  
 - Nilai besar di **diagonal** ⇒ prediksi benar  
