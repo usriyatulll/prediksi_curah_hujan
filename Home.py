@@ -39,7 +39,7 @@ with col1:
     """)
 
 with col2:
-    st.markdown("### 🌡️ Parameter Cuaca")
+    st.markdown("### 🌡️ Parameter Curah Hujan")
     st.info("""
     **TN**: Suhu Minimum (°C)  
     **TX**: Suhu Maksimum (°C)  
@@ -49,19 +49,27 @@ with col2:
     **SS**: Lama Penyinaran Matahari (jam)
     """)
 
-    st.success("🚀 Mulai eksplorasi dengan memilih halaman di sidebar kiri!")
+    # st.success("🚀 Mulai eksplorasi dengan memilih halaman di sidebar kiri!")
     
-with st.expander("ℹ️ Informasi Tambahan"):
-    st.markdown("""
-**Sumber Data**: BMKG Stasiun Meteorologi Cilacap  
-**Periode Data**: Januari 2020 – Mei 2024  
-**Kontak Pengembang**: khamimahusriyatul@gmail.com  
-""")
+# with st.expander("ℹ️ Informasi Tambahan"):
+#     st.markdown("""
+# **Sumber Data**: BMKG Stasiun Meteorologi Cilacap  
+# **Periode Data**: Januari 2020 – Mei 2024  
+# **Kontak Pengembang**: khamimahusriyatul@gmail.com  
+# """)
 
-with st.expander("❓ Cara Menggunakan"):
-    st.markdown("""
-1. Gunakan menu **📊 Halaman Data** untuk eksplorasi dataset.  
-2. Lihat **📈 Evaluasi Model** untuk perbandingan performa.  
-3. Gunakan **🔮 Prediksi** untuk memprediksi curah hujan beberapa hari ke depan.
-""")
+st.markdown("""
+### ❓ Cara Menggunakan
+<div style='padding: 1rem; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px'>
+<ol>
+  <li><b>📊 Halaman Data</b> – untuk eksplorasi dataset</li>
+  <li><b>📈 Evaluasi Model</b> – untuk melihat perbandingan performa</li>
+  <li><b>🔮 Prediksi</b> – untuk memprediksi curah hujan ke depan</li>
+</ol>
+</div>
+""", unsafe_allow_html=True)
+
+
+st.markdown("---")
+st.caption("👩‍💻 Dibuat oleh Usriyatul Khamimah – khamimahusriyatul@gmail.com")
 
