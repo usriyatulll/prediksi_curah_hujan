@@ -59,8 +59,8 @@ with col2:
 # """)
 
 st.markdown("""
-### ❓ Cara Menggunakan
 <div style='padding: 1rem; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px'>
+<p><b>❗Cara Menggunakan</b></p>
 <ol>
   <li><b>📊 Halaman Data</b> – untuk eksplorasi dataset</li>
   <li><b>📈 Evaluasi Model</b> – untuk melihat perbandingan performa</li>
