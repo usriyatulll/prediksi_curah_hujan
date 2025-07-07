@@ -97,9 +97,6 @@ if 'hasil_prediksi' in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
-   st.subheader("🗺️ Lokasi Prediksi Cuaca")
-   st.subheader("🗺️ Lokasi Prediksi Cuaca")
-
 # Subheader dan peta hanya muncul jika prediksi tersedia
     st.subheader("🗺️ Lokasi Prediksi Cuaca")
 
