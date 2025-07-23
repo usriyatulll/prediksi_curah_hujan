@@ -1,24 +1,24 @@
 import streamlit as st
-import os
-import joblib
 import pandas as pd
 import numpy as np
+import joblib
+import os
 from datetime import datetime, timedelta
 import folium
 from streamlit_folium import st_folium
 
-
 # === Load Model & Scaler ===
 base = os.path.dirname(os.path.abspath(__file__))
 model_paths = {
-    "Random Forest": os.path.join(base, '..', 'model', 'random_forest_model.pkl'),
+    "Random Forest": os.path.join(base, '..', 'model', 'rf_model.pkl'),
     "KNN": os.path.join(base, '..', 'model', 'knn_model.pkl'),
-    "Naive Bayes": os.path.join(base, '..', 'model', 'naive_bayes_model.pkl')
+    "Naive Bayes": os.path.join(base, '..', 'model', 'nb_model.pkl'),
+    "Stacking Classifier": os.path.join(base, '..', 'model', 'stacking_model.pkl'),
 }
 scaler_path = os.path.join(base, '..', 'model', 'scaler.pkl')
 le_path = os.path.join(base, '..', 'model', 'label_encoder.pkl')
 
-# Load all models
+# Load model dan scaler
 models = {name: joblib.load(path) for name, path in model_paths.items()}
 scaler = joblib.load(scaler_path)
 le = joblib.load(le_path)
@@ -27,22 +27,18 @@ le = joblib.load(le_path)
 st.title("🔮 Prediksi Curah Hujan Beberapa Hari ke Depan")
 st.header("🧾 Input Data Hari Ini")
 
-
 # Pilih model
-# Daftar model asli dan label tampilan
 model_labels = {
-    "Random Forest (Recommended)": "Random Forest",
+    "Stacking (NB+KNN+RF) (Direkomendasikan)": "Stacking Classifier",
+    "Random Forest": "Random Forest",
     "KNN": "KNN",
     "Naive Bayes": "Naive Bayes"
+   
 }
-
-# Dropdown dengan label tampilan
 model_selected_label = st.selectbox("🧠 Pilih Model Prediksi", list(model_labels.keys()))
-
-# Ambil nama model asli dari label yang dipilih
 model_selected = model_labels[model_selected_label]
 
-#input data
+# Input Data
 col1, col2 = st.columns(2)
 with col1:
     tn = st.number_input("Suhu Minimum (°C)", min_value=0.0, value=23.2)
@@ -52,8 +48,7 @@ with col1:
 with col2:
     rh = st.number_input("Kelembaban Rata-rata (%)", min_value=0.0, value=79.0)
     ss = st.number_input("Lama Penyinaran Matahari (jam)", min_value=0.0, value=1.0)
-    rr = st.number_input("RR (Curah Hujan Hari Ini, mm)", min_value=0.0, value=16.5)
-
+    rr = st.number_input("Curah Hujan Hari Ini (mm)", min_value=0.0, value=16.5)
 
 n_days = st.slider("🔁 Prediksi Berapa Hari ke Depan?", min_value=1, max_value=7, value=3)
 
@@ -73,17 +68,12 @@ tips_dict = {
 # === Tombol Prediksi ===
 if st.button("🔍 Prediksi"):
     try:
-        # Konversi input ke float
-        tn = float(tn)
-        tx = float(tx)
-        tavg = float(tavg)
-        rh = float(rh)
-        ss = float(ss)
-        rr = float(rr)
-
         hasil_prediksi = []
         tanggal_awal = datetime.today()
-        hist = {'TN': [tn], 'TX': [tx], 'TAVG': [tavg], 'RH_AVG': [rh], 'SS': [ss], 'RR': [rr]}
+
+        # Inisialisasi histori
+        hist = {'TN': [tn], 'TX': [tx], 'TAVG': [tavg],
+                'RH_AVG': [rh], 'SS': [ss], 'RR': [rr]}
 
         for i in range(n_days):
             fitur = {
@@ -92,26 +82,27 @@ if st.button("🔍 Prediksi"):
                 'RR_lag1': hist['RR'][-1], 'TAVG_lag1': hist['TAVG'][-1],
                 'RH_AVG_lag1': hist['RH_AVG'][-1], 'SS_lag1': hist['SS'][-1],
                 'TX_lag1': hist['TX'][-1], 'TN_lag1': hist['TN'][-1],
-                'RR_rolling_mean_3d_lag1': np.mean(hist['RR'][-3:])
+                'RR_rolling_mean_3d_lag1': np.mean(hist['RR'][-3:]),
             }
 
             df_fitur = pd.DataFrame([fitur])
             scaled = scaler.transform(df_fitur)
+
             model = models[model_selected]
             pred_enc = model.predict(scaled)[0]
-            pred_lab = le.inverse_transform([pred_enc])[0]
+            pred_label = le.inverse_transform([pred_enc])[0]
             tanggal = tanggal_awal + timedelta(days=i + 1)
-            hasil_prediksi.append((tanggal.strftime('%d-%m-%Y'), pred_lab))
+            hasil_prediksi.append((tanggal.strftime('%d-%m-%Y'), pred_label))
 
+            # Tambahkan variasi ringan untuk simulasi hari selanjutnya
             for key in hist:
-                hist[key].append(hist[key][-1] + np.random.normal(0, 0.2))  # variasi kecil
- # Simpan prediksi sebagai input berikutnya
+                hist[key].append(hist[key][-1] + np.random.normal(0, 0.2))
 
         st.session_state['hasil_prediksi'] = hasil_prediksi
         st.session_state['hist'] = hist
 
-    except ValueError:
-        st.error("❌ Harap masukkan angka yang valid.")
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat memproses: {e}")
 
 # === Tampilkan Hasil Prediksi ===
 if 'hasil_prediksi' in st.session_state:
@@ -135,19 +126,14 @@ if 'hasil_prediksi' in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
-    # Tampilkan Peta
+    # Peta Lokasi
     st.subheader("🗺️ Lokasi Prediksi Cuaca")
-    with st.container():
-        m = folium.Map(location=[-7.719, 109.015], zoom_start=10)
-        folium.Marker(
-            [-7.719, 109.015],
-            popup="Kabupaten Cilacap",
-            tooltip="Prediksi Cuaca",
-            icon=folium.Icon(color="blue", icon="cloud")
-        ).add_to(m)
-
-        st_folium(m, width=700, height=400)
-        st.markdown(
-            '<p style="margin-top: -10px; font-size: 0.9em;">📍 Kabupaten Cilacap, Jawa Tengah</p>',
-            unsafe_allow_html=True
-        )
+    st.markdown('<p style="margin-top: -10px; font-size: 0.9em;">📍 Kabupaten Cilacap, Jawa Tengah</p>', unsafe_allow_html=True)
+    m = folium.Map(location=[-7.719, 109.015], zoom_start=10)
+    folium.Marker(
+        [-7.719, 109.015],
+        popup="Kabupaten Cilacap",
+        tooltip="Prediksi Cuaca",
+        icon=folium.Icon(color="blue", icon="cloud")
+    ).add_to(m)
+    st_folium(m, width=700, height=400)

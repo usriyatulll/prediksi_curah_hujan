@@ -11,9 +11,10 @@ def load_artifacts():
     data_dir  = os.path.join(base, '..', 'data')
     try:
         models = {
-            'Naive Bayes'        : joblib.load(os.path.join(model_dir, 'naive_bayes_model.pkl')),
+            'Naive Bayes'        : joblib.load(os.path.join(model_dir, 'nb_model.pkl')),
             'K-Nearest Neighbors': joblib.load(os.path.join(model_dir, 'knn_model.pkl')),
-            'Random Forest'      : joblib.load(os.path.join(model_dir, 'random_forest_model.pkl')),
+            'Random Forest'      : joblib.load(os.path.join(model_dir, 'rf_model.pkl')),
+            'Stacking'           : joblib.load(os.path.join(model_dir, 'stacking_model.pkl')),  # ⬅️ Tambahan
         }
         le      = joblib.load(os.path.join(model_dir, 'label_encoder.pkl'))
         X_test  = pd.read_csv(os.path.join(data_dir,  'X_test_preprocessed.csv'))
@@ -22,8 +23,6 @@ def load_artifacts():
     except FileNotFoundError as e:
         st.error(f"Artefak tidak ditemukan: {e}")
         return None, None, None, None
-
-# === Penjelasan khusus tiap model ===
 
 def page():
     st.title("📈 Evaluasi Model")
@@ -44,10 +43,10 @@ def page():
         }
         matrices[name] = confusion_matrix(y_test, y_pred)
 
+    # === Tampilkan Perbandingan Metrik
     st.subheader("📋 Perbandingan Metrik")
     st.dataframe(pd.DataFrame(metrics).T.round(3), use_container_width=True)
     best = max(metrics, key=lambda k: metrics[k]['F1'])
-    # Grafik Perbandingan Metrik
     df_metric = pd.DataFrame(metrics).T.reset_index().rename(columns={"index": "Model"})
     fig_bar = px.bar(df_metric, x='Model', y=['Accuracy', 'Precision', 'Recall', 'F1'], barmode='group',
                     title="Perbandingan Metrik Evaluasi Tiap Model")
@@ -64,31 +63,33 @@ def page():
                     color_continuous_scale="Blues",
                     title=f"Confusion Matrix – {choice}")
     fig.update_xaxes(side="bottom")
-
     st.plotly_chart(fig, use_container_width=True)
 
-
-# ── Keterangan khusus per-model
-    if choice == "Naive Bayes":
-        st.markdown("""
+    # Penjelasan model
+    explanations = {
+        "Naive Bayes": """
 **Naive Bayes**  
 Model ini memiliki banyak nilai di luar diagonal → sering salah membedakan kelas yang mirip (*Hujan Ringan* vs *Hujan Sedang*).  
 Cocok sebagai baseline, tetapi kurang akurat untuk pola curah hujan kompleks.
-        """)
-    elif choice == "K-Nearest Neighbors":
-        st.markdown("""
+        """,
+        "K-Nearest Neighbors": """
 **K-Nearest Neighbors (KNN)**  
 Hampir semua prediksi tepat di diagonal → akurasi sangat tinggi.  
 KNN berhasil menangkap pola lokal; sangat baik membedakan *No Rain* dan *Hujan Sangat Lebat*.
-        """)
-    elif choice == "Random Forest":
-        st.markdown("""
+        """,
+        "Random Forest": """
 **Random Forest**  
 Prediksi mayoritas benar; hanya sedikit kesalahan pada *Hujan Ringan* → *Hujan Sedang*.  
 Model stabil, tahan outlier, dan seimbang antara akurasi & efisiensi.
-        """)
+        """,
+        "Stacking": """
+**Stacking Ensemble**  
+Menggabungkan kekuatan beberapa model dasar untuk meningkatkan generalisasi.  
+Performa terbaik karena mampu menangkap berbagai pola dari model-model base learner.
+        """
+    }
+    st.markdown(explanations.get(choice, ""))
 
-    # ── Penjelasan umum cara membaca CM
     with st.expander("ℹ️ Cara Membaca Confusion Matrix"):
         st.markdown("""
 - **Baris** = label **aktual** (ground truth)  
@@ -97,8 +98,6 @@ Model stabil, tahan outlier, dan seimbang antara akurasi & efisiensi.
 - Nilai di luar diagonal ⇒ kesalahan klasifikasi  
 Semakin pekat warna diagonal, semakin baik performa model.
         """)
-
-
 
 if __name__ == "__main__":
     page()

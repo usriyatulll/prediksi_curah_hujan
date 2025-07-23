@@ -23,12 +23,16 @@ with col1:
     ### 🎯 Fitur Utama:
     - **Analisis Data Cuaca**: Eksplorasi data cuaca historis 2020-2024
     - **Evaluasi Model**: Perbandingan performa 3 algoritma ML
-    - **Prediksi Real-time**: Prediksi curah hujan untuk hari-hari mendatang
+    - **Prediksi**: Simulasi prediksi curah hujan untuk hari-hari mendatang
 
     ### 🤖 Algoritma yang Digunakan:
     1. **Naive Bayes** – Algoritma probabilistik sederhana dan efektif
     2. **K-Nearest Neighbors (KNN)** – Klasifikasi berdasarkan tetangga terdekat
     3. **Random Forest** – Ensemble learning dengan multiple decision trees
+    4. **Stacking Classifier** – Kombinasi dari model-model di atas untuk performa terbaik
+    
+    ### 📍 Lokasi Prediksi:
+    Prediksi dilakukan untuk wilayah **Kabupaten Cilacap, Jawa Tengah** berdasarkan data historis cuaca dari tahun 2020 hingga 2024.
 
     ### 📊 Kategori Prediksi:
     - **No Rain**: 0 mm
