@@ -47,12 +47,8 @@ def data_page():
     - **RR**: Curah Hujan (mm)
     - **SS**: Lama Penyinaran Matahari (jam)
 
-    ---
-    ### 🔄 Pembagian Dataset
-    Dataset ini akan dibagi menjadi dua bagian:
-    - **Data Latih (Training)**: Digunakan untuk membangun model klasifikasi curah hujan.
-    - **Data Uji (Testing)**: Digunakan untuk mengevaluasi kinerja model prediksi.
-    """)
+  
+     """)
     
     st.markdown("---")
     
@@ -76,18 +72,18 @@ def data_page():
     st.plotly_chart(fig_cat, use_container_width=True, key="pie_rr_kategori")
 
     # Tabs
-    tab1, tab2 = st.tabs(["📋 Ringkasan Data", "🗓️ Trend Temporal"])
+    tab1, tab2 = st.tabs(["📋 Sample Data", "🗓️ Trend Temporal"])
 
     with tab1:
         # col1, col2 = st.columns(2)
 
         # with col1:
-            st.subheader("📊 Informasi Dataset")
-            st.write(f"**Jumlah Baris**: {len(df_clean):,}")
-            st.write(f"**Jumlah Kolom**: {len(df_clean.columns)}")
-            st.write(f"**Periode Data**: {df_clean['TANGGAL'].min().date()} - {df_clean['TANGGAL'].max().date()}")
+            # st.subheader("📊 Informasi Dataset")
+            # st.write(f"**Jumlah Baris**: {len(df_clean):,}")
+            # st.write(f"**Jumlah Kolom**: {len(df_clean.columns)}")
+            # st.write(f"**Periode Data**: {df_clean['TANGGAL'].min().date()} - {df_clean['TANGGAL'].max().date()}")
 
-            # # Missing values
+            # # # Missing values
             # st.subheader("❌ Missing Values")
             # missing_data = df_clean.isnull().sum()
             # for col, missing in missing_data.items():

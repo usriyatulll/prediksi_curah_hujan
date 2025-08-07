@@ -1,91 +1,84 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import joblib, os
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import os
 
-@st.cache_resource
-def load_artifacts():
-    base = os.path.dirname(os.path.abspath(__file__))
-    model_dir = os.path.join(base, '..', 'model')
-    data_dir  = os.path.join(base, '..', 'data')
-    try:
-        models = {
-            'Naive Bayes'        : joblib.load(os.path.join(model_dir, 'nb_model.pkl')),
-            'K-Nearest Neighbors': joblib.load(os.path.join(model_dir, 'knn_model.pkl')),
-            'Random Forest'      : joblib.load(os.path.join(model_dir, 'rf_model.pkl')),
-            'Stacking'           : joblib.load(os.path.join(model_dir, 'stacking_model.pkl')),  # ⬅️ Tambahan
-        }
-        le      = joblib.load(os.path.join(model_dir, 'label_encoder.pkl'))
-        X_test  = pd.read_csv(os.path.join(data_dir,  'X_test_preprocessed.csv'))
-        y_test  = pd.read_csv(os.path.join(data_dir,  'y_test_preprocessed.csv'))['RR_KAT_ENC']
-        return models, le, X_test, y_test
-    except FileNotFoundError as e:
-        st.error(f"Artefak tidak ditemukan: {e}")
-        return None, None, None, None
+def load_evaluation_data():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(base_dir, '..', 'data', 'model_evaluation_metrics.csv')
+    
+    if not os.path.exists(data_path):
+        st.error("❌ File metrik evaluasi tidak ditemukan. Pastikan Anda sudah menyimpannya dari training.")
+        return None
+
+    df = pd.read_csv(data_path)
+
+    # Normalisasi kolom agar kompatibel
+    if 'F1-Score' in df.columns:
+        df = df.rename(columns={'F1-Score': 'F1'})
+
+    return df
 
 def page():
-    st.title("📈 Evaluasi Model")
+    st.title("📈 Evaluasi Model Machine Learning")
 
-    models, le, X_test, y_test = load_artifacts()
-    if models is None:
+    df_metrics = load_evaluation_data()
+    if df_metrics is None:
         st.stop()
 
-    # === Hitung metrik ===
-    metrics, matrices = {}, {}
-    for name, mdl in models.items():
-        y_pred = mdl.predict(X_test)
-        metrics[name] = {
-            'Accuracy' : accuracy_score(y_test, y_pred),
-            'Precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
-            'Recall'   : recall_score(y_test, y_pred, average='weighted', zero_division=0),
-            'F1'       : f1_score(y_test, y_pred, average='weighted', zero_division=0),
-        }
-        matrices[name] = confusion_matrix(y_test, y_pred)
+    # Menentukan model terbaik
+    try:
+        best_row = df_metrics.loc[df_metrics['F1'].idxmax()]
+        best_model = best_row['Model']
+    except KeyError:
+        st.error("❌ Kolom 'F1' tidak ditemukan. Pastikan file CSV memiliki header: Model, Accuracy, Precision, Recall, F1(-Score)")
+        st.stop()
 
     # === Tampilkan Perbandingan Metrik
     st.subheader("📋 Perbandingan Metrik")
-    st.dataframe(pd.DataFrame(metrics).T.round(3), use_container_width=True)
-    best = max(metrics, key=lambda k: metrics[k]['F1'])
-    df_metric = pd.DataFrame(metrics).T.reset_index().rename(columns={"index": "Model"})
-    fig_bar = px.bar(df_metric, x='Model', y=['Accuracy', 'Precision', 'Recall', 'F1'], barmode='group',
-                    title="Perbandingan Metrik Evaluasi Tiap Model")
+    st.dataframe(df_metrics.round(3), use_container_width=True)
+
+    fig_bar = px.bar(
+        df_metrics, 
+        x='Model', 
+        y=['Accuracy', 'Precision', 'Recall', 'F1'], 
+        barmode='group',
+        title="Perbandingan Metrik Evaluasi Tiap Model"
+    )
     st.plotly_chart(fig_bar, use_container_width=True)
-    st.success(f"Model terbaik berdasarkan F1‑Score ➡️ **{best}** ({metrics[best]['F1']:.3f})")
 
+    st.success(f"Model terbaik berdasarkan F1‑Score ➡️ **{best_model}** ({best_row['F1']:.3f})")
+
+    # === Tampilkan Confusion Matrix sebagai gambar
     st.divider()
-    st.subheader("🔄 Confusion Matrix")
-    choice = st.selectbox("Pilih Model:", list(models.keys()))
-    cm      = matrices[choice]
-    cats    = le.classes_
-    fig = px.imshow(cm, text_auto=True, x=cats, y=cats,
-                    labels=dict(x="Prediksi", y="Aktual", color="Jumlah"),
-                    color_continuous_scale="Blues",
-                    title=f"Confusion Matrix – {choice}")
-    fig.update_xaxes(side="bottom")
-    st.plotly_chart(fig, use_container_width=True)
+    st.subheader("🔄 Visualisasi Confusion Matrix")
+    choice = st.selectbox("Pilih Model:", df_metrics['Model'].tolist())
 
-    # Penjelasan model
+    image_filename = f"confusion_matrix_{choice.lower().replace(' ', '_')}.png"
+    image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', image_filename)
+
+    if os.path.exists(image_path):
+        st.image(image_path, caption=f'Confusion Matrix – {choice}', use_container_width=True)
+    else:
+        st.warning(f"⚠️ Gambar confusion matrix untuk model {choice} tidak ditemukan: `{image_filename}`")
+
+    # Penjelasan model (opsional)
     explanations = {
         "Naive Bayes": """
 **Naive Bayes**  
-Model ini memiliki banyak nilai di luar diagonal → sering salah membedakan kelas yang mirip (*Hujan Ringan* vs *Hujan Sedang*).  
-Cocok sebagai baseline, tetapi kurang akurat untuk pola curah hujan kompleks.
+Sederhana dan cepat, namun kurang akurat untuk data yang kompleks. Banyak kesalahan di kelas yang mirip.
         """,
         "K-Nearest Neighbors": """
 **K-Nearest Neighbors (KNN)**  
-Hampir semua prediksi tepat di diagonal → akurasi sangat tinggi.  
-KNN berhasil menangkap pola lokal; sangat baik membedakan *No Rain* dan *Hujan Sangat Lebat*.
+Sangat akurat bila data bersih dan seimbang. Mampu membedakan kelas ekstrem dengan baik.
         """,
         "Random Forest": """
 **Random Forest**  
-Prediksi mayoritas benar; hanya sedikit kesalahan pada *Hujan Ringan* → *Hujan Sedang*.  
-Model stabil, tahan outlier, dan seimbang antara akurasi & efisiensi.
+Kuat terhadap noise dan overfitting. Performa stabil dan bisa dijelaskan.
         """,
         "Stacking": """
 **Stacking Ensemble**  
-Menggabungkan kekuatan beberapa model dasar untuk meningkatkan generalisasi.  
-Performa terbaik karena mampu menangkap berbagai pola dari model-model base learner.
+Menggabungkan banyak model dasar. Biasanya memberikan hasil terbaik dan generalisasi kuat.
         """
     }
     st.markdown(explanations.get(choice, ""))
